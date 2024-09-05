@@ -6,7 +6,7 @@ import {
   IUser,
   IUserInput,
 } from "../constants/iUser.interface";
-import User from "../models/user.models";
+import { User } from "../models/user.model";
 import AppError from "../utils/appError";
 import env from "../configs/env";
 
@@ -71,7 +71,7 @@ export const loginUserService = async (
     throw new AppError(401, "The email or password you entered is incorrect.");
   }
 
-  const payload = { id: user._id };
+  const payload = { id: user._id, fullname: user.fullName };
   const secretKey = env.jwtTokenSecret || "";
   const token = jwt.sign(payload, secretKey, { expiresIn: "1h" });
 

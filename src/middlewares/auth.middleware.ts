@@ -3,7 +3,7 @@ import { IRequestWithUser } from "../utils/type";
 import AppError from "../utils/appError";
 import { TokenExpiredError, verify } from "jsonwebtoken";
 import env from "../configs/env";
-import User from "../models/user.models";
+import { User } from "../models/user.model";
 
 export const isAuth = async (
   req: IRequestWithUser<any, any, any, any>,
@@ -20,7 +20,7 @@ export const isAuth = async (
     }
     const payload = verify(accessToken, env.jwtTokenSecret as string, {
       ignoreExpiration: false,
-    }) as { id: string };
+    }) as { id: string; fullName: string };
 
     if (!payload || !payload.id) {
       return next(new AppError(401, "Invalid token!"));
@@ -32,7 +32,7 @@ export const isAuth = async (
       return next(new AppError(401, "User not found!"));
     }
 
-    req.user = user;
+    req.user = { id: user.id, fullName: payload.fullName };
 
     next();
   } catch (error) {
