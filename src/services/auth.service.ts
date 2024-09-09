@@ -57,31 +57,40 @@ export const loginUserService = async (
   loginData: ILoginData
 ): Promise<ILoginResponse> => {
   const { email, password } = loginData;
+  try {
+    if (!email || !password) {
+      throw new AppError(400, "Email and password are required.");
+    }
 
-  if (!email || !password) {
-    throw new AppError(400, "Email and password are required.");
+    const user = await User.findOne({ email: email });
+    if (!user || !user.password) {
+      throw new AppError(
+        401,
+        "The email or password you entered is incorrect."
+      );
+    }
+
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+    if (!isPasswordValid) {
+      throw new AppError(
+        401,
+        "The email or password you entered is incorrect."
+      );
+    }
+
+    const payload = { id: user._id, fullname: user.fullName };
+    const secretKey = env.jwtTokenSecret || "";
+    const token = jwt.sign(payload, secretKey, { expiresIn: "1h" });
+
+    const userObject = user.toObject();
+
+    delete userObject.password;
+
+    return {
+      token,
+      ...userObject,
+    };
+  } catch (error: any) {
+    throw new AppError(error.statusCode, error.message);
   }
-
-  const user = await User.findOne({ email: email });
-  if (!user || !user.password) {
-    throw new AppError(401, "The email or password you entered is incorrect.");
-  }
-
-  const isPasswordValid = await bcrypt.compare(password, user.password);
-  if (!isPasswordValid) {
-    throw new AppError(401, "The email or password you entered is incorrect.");
-  }
-
-  const payload = { id: user._id, fullname: user.fullName };
-  const secretKey = env.jwtTokenSecret || "";
-  const token = jwt.sign(payload, secretKey, { expiresIn: "1h" });
-
-  const userObject = user.toObject();
-
-  delete userObject.password;
-
-  return {
-    token,
-    ...userObject,
-  };
 };
