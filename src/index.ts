@@ -49,21 +49,17 @@ io.on("connection", (socket) => {
 
   socket.on("sendMessage", async (messageData) => {
     try {
-      // Ensure messageData contains senderId and content
       if (!messageData.senderId || !messageData.content) {
         throw new Error("Sender ID and message content are required.");
       }
 
-      // Create the message
       const message = new MessageModel({
         sender: messageData.senderId,
         content: messageData.content,
       });
 
-      // Save message to the database
       const savedMessage = await message.save();
 
-      // Populate the sender field with user data
       const populatedMessage = await MessageModel.findById(
         savedMessage._id
       ).populate("sender", "fullName _id");
