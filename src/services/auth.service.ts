@@ -83,11 +83,11 @@ export const loginUserService = async (
     const token = jwt.sign(payload, secretKey, { expiresIn: "1h" });
 
     const userObject = user.toObject();
-
     delete userObject.password;
 
     return {
       token,
+      userId: user._id.toString(), // Ensure userId is a string
       ...userObject,
     };
   } catch (error: any) {

@@ -65,37 +65,12 @@
         <button type="submit" class="btn btn-primary">Send</button>
       </form>
 
+      <!-- Include Socket.io client script -->
+      <script src="/socket.io/socket.io.js"></script>
       <script>
-        document
-          .getElementById("messageForm")
-          .addEventListener("submit", async function (event) {
-            event.preventDefault();
-            const content = document.getElementById("content").value;
-            const token = localStorage.getItem("authToken");
+        const socket = io();
 
-            try {
-              const response = await fetch("/api/v1/message/send", {
-                method: "POST",
-                headers: {
-                  "Content-Type": "application/json",
-                  Authorization: `Bearer ${token}`,
-                },
-                body: JSON.stringify({ content }),
-              });
-
-              const data = await response.json();
-
-              if (response.ok) {
-                document.getElementById("content").value = "";
-                await loadMessages();
-              } else {
-                console.error("Failed to send message:", data.message);
-              }
-            } catch (error) {
-              console.error("Error:", error);
-            }
-          });
-
+        // Function to load messages initially
         async function loadMessages() {
           const token = localStorage.getItem("authToken");
 
@@ -118,6 +93,7 @@
           }
         }
 
+        // Function to display messages
         function displayMessages(messages, currentUser) {
           const messagesDiv = document.getElementById("messages");
           messagesDiv.innerHTML = "";
@@ -140,6 +116,38 @@
           });
         }
 
+        // Handle incoming real-time messages
+        socket.on("message", (messageData) => {
+          const messagesDiv = document.getElementById("messages");
+          const messageDiv = document.createElement("div");
+          messageDiv.className = `message ${
+            messageData.sender._id === localStorage.getItem("userId")
+              ? "sent"
+              : ""
+          }`;
+          messageDiv.innerHTML = `<div class="message-content"><strong>${messageData.sender.fullName}:</strong> ${messageData.content}</div>`;
+          messagesDiv.appendChild(messageDiv);
+        });
+
+        // Send message event
+        document
+          .getElementById("messageForm")
+          .addEventListener("submit", function (event) {
+            event.preventDefault();
+            const content = document.getElementById("content").value;
+            const senderId = localStorage.getItem("userId");
+
+            if (!senderId) {
+              console.error("Sender ID is missing.");
+              return;
+            }
+
+            socket.emit("sendMessage", { senderId, content });
+
+            document.getElementById("content").value = "";
+          });
+
+        // Search messages event
         document
           .getElementById("searchForm")
           .addEventListener("submit", async function (event) {
@@ -169,6 +177,7 @@
             }
           });
 
+        // Load messages on page load
         document.addEventListener("DOMContentLoaded", loadMessages);
       </script>
     </div>
