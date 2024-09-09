@@ -1,5 +1,7 @@
+import mongoose from "mongoose";
+
 export interface IMessage extends Document {
-  sender: string;
+  sender: mongoose.Types.ObjectId;
   content: string;
-  createdAt?: Date;
+  createdAt: Date;
 }

@@ -123,11 +123,19 @@
           messagesDiv.innerHTML = "";
 
           messages.forEach((message) => {
+            if (!message.sender || !message.sender._id) {
+              console.error(
+                "Message sender data is missing or incomplete:",
+                message
+              );
+              return;
+            }
+
             const messageDiv = document.createElement("div");
             messageDiv.className = `message ${
-              message.sender === currentUser ? "sent" : ""
+              message.sender._id === currentUser ? "sent" : ""
             }`;
-            messageDiv.innerHTML = `<div class="message-content"><strong>${message.sender}:</strong> ${message.content}</div>`;
+            messageDiv.innerHTML = `<div class="message-content"><strong>${message.sender.fullName}:</strong> ${message.content}</div>`;
             messagesDiv.appendChild(messageDiv);
           });
         }
