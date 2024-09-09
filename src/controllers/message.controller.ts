@@ -1,5 +1,9 @@
 import { Request, Response, NextFunction } from "express";
-import { getAllMessages, saveMessage } from "../services/message.service";
+import {
+  getAllMessages,
+  saveMessage,
+  searchMessages,
+} from "../services/message.service";
 import { IRequestWithUser } from "../utils/type";
 
 export const sendMessageHandler = async (
@@ -21,13 +25,26 @@ export const sendMessageHandler = async (
   }
 };
 
-export const getMessagesHandler = async (req: Request, res: Response) => {
+export const getMessagesHandler = async (
+  req: IRequestWithUser<any, any, any, any>,
+  res: Response,
+  next: NextFunction
+) => {
   try {
     const messages = await getAllMessages();
+    const currentUser = req.user?.id;
+    res.status(200).send({ messages, currentUser });
+  } catch (error) {
+    return res.status(500).json({ message: "Error fetching messages", error });
+  }
+};
+
+export const searchMessagesHandler = async (req: Request, res: Response) => {
+  try {
+    const searchTerm = req.query.q as string;
+    const messages = await searchMessages(searchTerm);
     return res.status(200).json({ messages });
   } catch (error) {
-    return res
-      .status(500)
-      .json({ message: "Error retrieving messages", error });
+    return res.status(500).json({ message: "Error searching messages", error });
   }
 };

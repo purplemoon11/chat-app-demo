@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>User Login</title>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css"
+    />
+  </head>
+  <body>
+    <div class="container mt-5">
+      <h2 class="text-center">Login</h2>
+      <div id="message-container"></div>
+      <form id="loginForm">
+        <div class="mb-3">
+          <label for="email" class="form-label">Email</label>
+          <input
+            type="email"
+            class="form-control"
+            id="email"
+            name="email"
+            required
+          />
+        </div>
+        <div class="mb-3">
+          <label for="password" class="form-label">Password</label>
+          <input
+            type="password"
+            class="form-control"
+            id="password"
+            name="password"
+            required
+          />
+        </div>
+        <button type="submit" class="btn btn-primary">Login</button>
+      </form>
+
+      <script>
+        document
+          .getElementById("loginForm")
+          .addEventListener("submit", async function (event) {
+            event.preventDefault(); // Prevent the default form submission
+
+            const email = document.getElementById("email").value;
+            const password = document.getElementById("password").value;
+
+            try {
+              const response = await fetch("/api/v1/auth/login", {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ email, password }),
+              });
+
+              const data = await response.json();
+
+              // Check if the response is successful
+              if (response.ok) {
+                // Access the token from the data field
+                console.log("Response Data:", data);
+                console.log("Token:", data.data.token); // Updated path to token
+
+                if (data.data.token) {
+                  // Store token in localStorage
+                  localStorage.setItem("authToken", data.data.token);
+                  console.log(
+                    "Token Stored:",
+                    localStorage.getItem("authToken")
+                  );
+
+                  // Redirect to the dashboard or chat page
+                  window.location.href = "/api/v1/message/send"; // Adjust based on your route
+                } else {
+                  console.error("Token is missing in response.");
+                }
+              } else {
+                // Show error message
+                document.getElementById("message-container").innerHTML = `
+        <div class="alert alert-danger" role="alert">${data.message}</div>
+      `;
+              }
+            } catch (error) {
+              console.error("Error:", error);
+              document.getElementById("message-container").innerHTML = `
+      <div class="alert alert-danger" role="alert">An unexpected error occurred.</div>
+    `;
+            }
+          });
+      </script>
+    </div>
+  </body>
+</html>

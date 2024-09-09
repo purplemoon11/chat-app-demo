@@ -27,6 +27,7 @@ export const registerUserService = async (
     }
 
     const existingUser = await User.findOne({ email: email });
+
     if (existingUser) {
       throw new AppError(400, "User with this email already exists");
     }

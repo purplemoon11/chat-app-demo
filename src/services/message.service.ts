@@ -11,3 +11,13 @@ export const saveMessage = async (
 export const getAllMessages = async () => {
   return await MessageModel.find().sort({ createdAt: 1 });
 };
+
+export const searchMessages = async (searchTerm: string) => {
+  if (!searchTerm) {
+    return [];
+  }
+
+  return await MessageModel.find({
+    content: { $regex: searchTerm, $options: "i" },
+  }).sort({ createdAt: 1 });
+};

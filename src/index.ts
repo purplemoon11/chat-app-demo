@@ -18,7 +18,9 @@ setupSwagger(app);
 
 // Express middlewares
 app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
+app.use(express.urlencoded({ extended: true }));
+app.set("view engine", "ejs");
+app.set("views", __dirname + "/views");
 
 // Routes
 app.use("/api/v1", v1Route);

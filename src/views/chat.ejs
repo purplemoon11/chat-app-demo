@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Chat</title>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css"
+    />
+    <style>
+      .message {
+        display: flex;
+        justify-content: flex-start;
+        margin-bottom: 10px;
+      }
+      .message.sent {
+        justify-content: flex-end;
+      }
+      .message-content {
+        padding: 10px;
+        border-radius: 10px;
+        max-width: 60%;
+        background-color: #f1f1f1;
+        word-wrap: break-word;
+      }
+      .message.sent .message-content {
+        background-color: #d1e7dd;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container mt-5">
+      <h2 class="text-center">Chat</h2>
+
+      <!-- Search bar -->
+      <form id="searchForm" class="mb-4">
+        <div class="input-group">
+          <input
+            type="text"
+            id="searchInput"
+            class="form-control"
+            placeholder="Search messages..."
+            aria-label="Search messages"
+          />
+          <button type="submit" class="btn btn-secondary">Search</button>
+        </div>
+      </form>
+
+      <!-- Messages display -->
+      <div id="messages" class="mb-4">
+        <p>No messages yet.</p>
+      </div>
+
+      <!-- Form to send a new message -->
+      <form id="messageForm">
+        <div class="mb-3">
+          <label for="content" class="form-label">Message</label>
+          <input
+            type="text"
+            class="form-control"
+            id="content"
+            name="content"
+            required
+          />
+        </div>
+        <button type="submit" class="btn btn-primary">Send</button>
+      </form>
+
+      <script>
+        document
+          .getElementById("messageForm")
+          .addEventListener("submit", async function (event) {
+            event.preventDefault();
+            const content = document.getElementById("content").value;
+            const token = localStorage.getItem("authToken");
+
+            try {
+              const response = await fetch("/api/v1/message/send", {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                  Authorization: `Bearer ${token}`,
+                },
+                body: JSON.stringify({ content }),
+              });
+
+              const data = await response.json();
+
+              if (response.ok) {
+                document.getElementById("content").value = "";
+                await loadMessages();
+              } else {
+                console.error("Failed to send message:", data.message);
+              }
+            } catch (error) {
+              console.error("Error:", error);
+            }
+          });
+
+        async function loadMessages() {
+          const token = localStorage.getItem("authToken");
+
+          try {
+            const response = await fetch("/api/v1/message", {
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`,
+              },
+            });
+
+            const data = await response.json();
+            if (response.ok) {
+              displayMessages(data.messages, data.currentUser);
+            } else {
+              console.error("Failed to load messages:", data.message);
+            }
+          } catch (error) {
+            console.error("Error loading messages:", error);
+          }
+        }
+
+        function displayMessages(messages, currentUser) {
+          const messagesDiv = document.getElementById("messages");
+          messagesDiv.innerHTML = "";
+
+          messages.forEach((message) => {
+            const messageDiv = document.createElement("div");
+            messageDiv.className = `message ${
+              message.sender === currentUser ? "sent" : ""
+            }`;
+            messageDiv.innerHTML = `<div class="message-content"><strong>${message.sender}:</strong> ${message.content}</div>`;
+            messagesDiv.appendChild(messageDiv);
+          });
+        }
+
+        document
+          .getElementById("searchForm")
+          .addEventListener("submit", async function (event) {
+            event.preventDefault();
+            const searchTerm = document.getElementById("searchInput").value;
+            const token = localStorage.getItem("authToken");
+
+            try {
+              const response = await fetch(
+                `/api/v1/message/search?q=${searchTerm}`,
+                {
+                  headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${token}`,
+                  },
+                }
+              );
+
+              const data = await response.json();
+              if (response.ok) {
+                displayMessages(data.messages, data.currentUser);
+              } else {
+                console.error("Failed to search messages:", data.message);
+              }
+            } catch (error) {
+              console.error("Error searching messages:", error);
+            }
+          });
+
+        document.addEventListener("DOMContentLoaded", loadMessages);
+      </script>
+    </div>
+  </body>
+</html>

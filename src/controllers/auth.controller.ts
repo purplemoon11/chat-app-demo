@@ -19,17 +19,18 @@ export const registerUser = async (
   next: NextFunction
 ): Promise<void> => {
   try {
-    const newRegisterUser = await registerUserService(req.body);
-    successCallback(
-      res,
-      "success",
-      "UserRegistration",
-      "User Created Successfully !!!",
-      newRegisterUser
-    );
+    await registerUserService(req.body);
+    res.render("register", {
+      message: "User Created Successfully !!!",
+      error: null,
+    });
+    res.redirect("/login");
   } catch (error: any) {
     console.log(error.message, error.statusCode);
-    next(new AppError(error.statusCode, error.message));
+    res.render("register", {
+      message: null,
+      error: error.message || "Something went wrong",
+    });
   }
 };
 

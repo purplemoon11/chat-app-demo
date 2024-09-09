@@ -1,4 +1,4 @@
-import { Router } from "express";
+import { Router, Request, Response, NextFunction } from "express";
 import { loginUser, registerUser } from "../controllers/auth.controller";
 
 const router = Router();
@@ -102,6 +102,13 @@ const router = Router();
 
 router.post("/register", registerUser);
 
+router.get("/register", (req: Request, res: Response) => {
+  res.render("register", {
+    message: null,
+    error: null,
+  });
+});
+
 /**
  * @openapi
  * /api/v1/auth/login:
@@ -147,5 +154,12 @@ router.post("/register", registerUser);
  */
 
 router.post("/login", loginUser);
+
+router.get("/login", (req: Request, res: Response) => {
+  res.render("login", {
+    message: null,
+    error: null,
+  });
+});
 
 export default router;
