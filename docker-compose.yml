@@ -1,0 +1,13 @@
+services:
+  chat-app:
+    image: chat_app_image:latest
+    build:
+      context: .
+    ports:
+      - "8115:8115"
+    networks:
+      - chat-app-network
+
+networks:
+  chat-app-network:
+    driver: bridge
