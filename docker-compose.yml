@@ -1,3 +1,5 @@
+version: "3.8"
+
 services:
   chat-app:
     image: chat_app_image:latest
@@ -7,10 +9,12 @@ services:
       - "8115:8115"
     networks:
       - chat-app-network
+    environment:
+      - MONGO_URI=mongodb://mongo:27017/chat-app
 
   mongo:
     image: mongo:5.0.7
-    restart: always
+    container_name: mongo-container
     ports:
       - "27017:27017"
     networks:
@@ -21,3 +25,6 @@ services:
 networks:
   chat-app-network:
     driver: bridge
+
+volumes:
+  mongo-data:
